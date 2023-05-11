@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  setCurrentPage,
-  setCategory,
-  setSortBy,
-} from '../../actions/photoActions';
+import { setCurrentPage, setSortBy } from '../../actions/photoActions';
 import { fetchPhotos } from '../../services/photoService';
 import './PhotoGallery.css';
 import './Loader.css';
+import CategorySelector from '../CategorySelector/CategorySelector';
 
 const PhotoGallery = () => {
   const { photos, currentPage, sortBy, category, loading } = useSelector(
@@ -19,40 +16,9 @@ const PhotoGallery = () => {
   const [modalType, setModalType] = useState(null);
   const dispatch = useDispatch();
 
-  const categories = {
-    '': 'Select a category',
-    animals: 'Animals',
-    sports: 'Sports',
-    work: 'Work',
-    backgrounds: 'Backgrounds',
-    fashion: 'Fashion',
-    nature: 'Nature',
-    science: 'Science',
-    education: 'Education',
-    feelings: 'Feelings',
-    health: 'Health',
-    people: 'People',
-    religion: 'Religion',
-    places: 'Places',
-    industry: 'Industry',
-    computer: 'Computer',
-    food: 'Food',
-    transportation: 'Transportation',
-    travel: 'Travel',
-    buildings: 'Buildings',
-    business: 'Business',
-    music: 'Music',
-  };
-
   useEffect(() => {
     dispatch(fetchPhotos(selectedCategory, currentPage, sortBy));
   }, [dispatch, currentPage, selectedCategory, sortBy]);
-
-  const handleCategorySelect = (e) => {
-    setSelectedCategory(e.target.value);
-    dispatch(setCategory(selectedCategory));
-    setShowModal(false);
-  };
 
   const handlePrevClick = () => {
     if (currentPage > 0) {
@@ -83,6 +49,7 @@ const PhotoGallery = () => {
     setSelectedPhoto(photo);
     handleModalOpen('photoDetails');
   };
+
   return (
     <div className="photo-gallery-container">
       <div className="controllers">
@@ -113,21 +80,11 @@ const PhotoGallery = () => {
               &times;
             </span>
             {modalType === 'category' ? (
-              <>
-                <h3>Select a category</h3>
-                <div className="controllers">
-                  <select
-                    onChange={handleCategorySelect}
-                    value={selectedCategory}
-                  >
-                    {Object.entries(categories).map(([value, name]) => (
-                      <option key={value} value={value}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </>
+              <CategorySelector
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+                setShowModal={setShowModal}
+              />
             ) : modalType === 'photoDetails' && selectedPhoto ? (
               <>
                 <h3>Photo Details</h3>
