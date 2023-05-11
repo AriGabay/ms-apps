@@ -2,12 +2,24 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
+const morgan = require('morgan');
+const fs = require('fs');
+const path = require('path');
 
+// Create a write stream for logging to a file
+const logStream = fs.createWriteStream(
+  path.join(__dirname, 'logs/access.log'),
+  { flags: 'a' }
+);
 const app = express();
+app.use(morgan('combined', { stream: logStream })); // Use Morgan for logging with a file output
+
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(cors());
+app.use(morgan('dev'));
+
 const PER_PAGE = 9;
 
 const sortByDate = (a, b) => new Date(a.created_at) - new Date(b.created_at);
@@ -27,31 +39,7 @@ const getSortedPhotos = (photos, sortType) => {
   }
 };
 
-app.get('/api/photos/sort', async (req, res) => {
-  const { category, sort } = req.query;
-  if (!category || !sort) {
-    return res
-      .status(400)
-      .json({ error: 'Category and Sort parameters are required' });
-  }
-  try {
-    const response = await axios.get(
-      `https://pixabay.com/api/?key=25540812-faf2b76d586c1787d2dd02736&q=${category}&sort=${sort}&per_page=${PER_PAGE}`
-    );
-    if (response.status !== 200) {
-      return res
-        .status(response.status)
-        .json({ error: 'Error fetching photos from Pixabay API' });
-    }
-    const sortedPhotos = getSortedPhotos(response.data.hits, sort);
-    res.json(sortedPhotos);
-  } catch (error) {
-    console.error('Error fetching photos:', error);
-    res.status(500).json({ error: 'Error fetching photos' });
-  }
-});
-
-app.get('/api/photos/page', async (req, res) => {
+app.get('/api/photos', async (req, res) => {
   const { category, page, sort } = req.query;
   if (!category || !page) {
     return res
@@ -59,23 +47,11 @@ app.get('/api/photos/page', async (req, res) => {
       .json({ error: 'Category and page parameters are required' });
   }
   try {
-    let response = null;
-    console.log('sort', sort);
-    if (sort !== null) {
-      console.log('without sort');
-      response = await axios.get(
-        `https://pixabay.com/api/?key=25540812-faf2b76d586c1787d2dd02736&q=${category}&page=${
-          page + 1
-        }&per_page=${PER_PAGE}`
-      );
-    } else {
-      console.log('with sort');
-      response = await axios.get(
-        `https://pixabay.com/api/?key=25540812-faf2b76d586c1787d2dd02736&q=${category}&page=${
-          page + 1
-        }&per_page=${PER_PAGE}&sort=${sort}`
-      );
-    }
+    const response = await axios.get(
+      `${process.env.PIXABAY_API}?key=${
+        process.env.PIXABAY_KEY
+      }=${category}&page=${page + 1}&per_page=${PER_PAGE}`
+    );
 
     if (
       response.status !== 200 ||
@@ -87,10 +63,16 @@ app.get('/api/photos/page', async (req, res) => {
         .status(response.status)
         .json({ error: 'Error fetching photos from Pixabay API' });
     }
-    res.json(response.data.hits);
+    if (sort) {
+      const sortedPhotos = getSortedPhotos(response.data.hits, sort);
+      res.json(sortedPhotos);
+    } else {
+      res.json(response.data.hits);
+    }
   } catch (error) {
     console.error('Error fetching photos:', error);
     res.status(500).json({ error: 'Error fetching photos' });
+    next(error);
   }
 });
 

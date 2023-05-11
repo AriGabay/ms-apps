@@ -25,7 +25,6 @@ const photosReducer = (state = initialState, action) => {
         loading: true,
       };
     case FETCH_PHOTOS_SUCCESS:
-      console.log('action.payload', action.payload);
       return {
         ...state,
         loading: false,

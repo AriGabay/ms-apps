@@ -5,10 +5,7 @@ import {
   setCategory,
   setSortBy,
 } from '../../actions/photoActions';
-import {
-  fetchPhotosByPage,
-  fetchPhotosBySort,
-} from '../../services/photoService';
+import { fetchPhotos } from '../../services/photoService';
 import './PhotoGallery.css';
 import './Loader.css';
 
@@ -20,18 +17,36 @@ const PhotoGallery = () => {
   const [selectedCategory, setSelectedCategory] = useState(category);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [modalType, setModalType] = useState(null);
-
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    dispatch(fetchPhotosByPage(selectedCategory, currentPage, sortBy));
-  }, [dispatch, currentPage, selectedCategory, sortBy]);
+  const categories = {
+    '': 'Select a category',
+    animals: 'Animals',
+    sports: 'Sports',
+    work: 'Work',
+    backgrounds: 'Backgrounds',
+    fashion: 'Fashion',
+    nature: 'Nature',
+    science: 'Science',
+    education: 'Education',
+    feelings: 'Feelings',
+    health: 'Health',
+    people: 'People',
+    religion: 'Religion',
+    places: 'Places',
+    industry: 'Industry',
+    computer: 'Computer',
+    food: 'Food',
+    transportation: 'Transportation',
+    travel: 'Travel',
+    buildings: 'Buildings',
+    business: 'Business',
+    music: 'Music',
+  };
 
   useEffect(() => {
-    if (sortBy !== null) {
-      dispatch(fetchPhotosBySort(selectedCategory, sortBy));
-    }
-  }, [dispatch, selectedCategory, sortBy]);
+    dispatch(fetchPhotos(selectedCategory, currentPage, sortBy));
+  }, [dispatch, currentPage, selectedCategory, sortBy]);
 
   const handleCategorySelect = (e) => {
     setSelectedCategory(e.target.value);
@@ -68,7 +83,6 @@ const PhotoGallery = () => {
     setSelectedPhoto(photo);
     handleModalOpen('photoDetails');
   };
-  console.log('photos', photos);
   return (
     <div className="photo-gallery-container">
       <div className="controllers">
@@ -106,28 +120,11 @@ const PhotoGallery = () => {
                     onChange={handleCategorySelect}
                     value={selectedCategory}
                   >
-                    <option value="">Select a category</option>
-                    <option value="animals">Animals</option>
-                    <option value="sports">Sports</option>
-                    <option value="work">Work</option>
-                    <option value="backgrounds">Backgrounds</option>
-                    <option value="fashion">Fashion</option>
-                    <option value="nature">Nature</option>
-                    <option value="science">Science</option>
-                    <option value="education">Education</option>
-                    <option value="feelings">Feelings</option>
-                    <option value="health">Health</option>
-                    <option value="people">People</option>
-                    <option value="religion">Religion</option>
-                    <option value="places">Places</option>
-                    <option value="industry">Industry</option>
-                    <option value="computer">Computer</option>
-                    <option value="food">Food</option>
-                    <option value="transportation">Transportation</option>
-                    <option value="travel">Travel</option>
-                    <option value="buildings">Buildings</option>
-                    <option value="business">Business</option>
-                    <option value="music">Music</option>
+                    {Object.entries(categories).map(([value, name]) => (
+                      <option key={value} value={value}>
+                        {name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </>
@@ -142,36 +139,6 @@ const PhotoGallery = () => {
           </div>
         </div>
       )}
-
-      {/* {showModal && (
-        <div>
-          <select onChange={handleCategorySelect} value={selectedCategory}>
-            <option value="">Select a category</option>
-            <option value="animals">Animals</option>
-            <option value="sports">Sports</option>
-            <option value="work">Work</option>
-            <option value="backgrounds">Backgrounds</option>
-            <option value="fashion">Fashion</option>
-            <option value="nature">Nature</option>
-            <option value="science">Science</option>
-            <option value="education">Education</option>
-            <option value="feelings">Feelings</option>
-            <option value="health">Health</option>
-            <option value="people">People</option>
-            <option value="religion">Religion</option>
-            <option value="places">Places</option>
-            <option value="industry">Industry</option>
-            <option value="computer">Computer</option>
-            <option value="food">Food</option>
-            <option value="transportation">Transportation</option>
-            <option value="travel">Travel</option>
-            <option value="buildings">Buildings</option>
-            <option value="business">Business</option>
-            <option value="music">Music</option>
-          </select>
-          <button onClick={handleCategorySubmit}>Submit</button>
-        </div>
-      )} */}
       <div className={!loading ? 'photo-grid' : ''}>
         {loading ? (
           <div className="circle-loader-container">
